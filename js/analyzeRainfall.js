@@ -12,29 +12,6 @@ function updateProgressBar(percent)
     }
 }
 
-function meltData(rain)
-{
-    updateProgressBar(85);
-
-    var newrain = melt(rain,["stateid","districtid", "year_val", "avg", "total", "distname", "districid", "stateid", "statename" ], "month");
-
-    /*
-    var index = 0;
-    for (var i = 0; i < 3; i++)
-    {
-        console.log("Before: ", rain[i]); 
-
-        for (var j = 0; j < 12; j++)
-        {
-            console.log("After[" + index + "]: ", newrain[index]);
-            index++;
-        }
-    }
-    */
-
-    return newrain;
-}
-
 function startDoingThings()
 {
     updateProgressBar(30);
@@ -75,24 +52,10 @@ function drawGraphs(rain)
     var noOfRecords = cf.size();
     //console.log("Size: ", noOfRecords);
 
+    var monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
     var monthlyTotalDim = cf.dimension(function(d) {
-        return d.month;
-        /*
-        switch (d.month)
-        {
-            case "jan":
-                return new Date(2015, 0, 1);
-            break;
-
-            case "feb":
-                return new Date(2015, 1, 1);
-            break;
-
-            default:
-                return new Date(2015, 4, 1);
-            break;
-        }
-        */
+        return d.date.getMonth();
+        //return monthNames[d.date.getMonth()];
     });
 
     var monthlyValue = monthlyTotalDim.group().reduceSum(function(d) {
@@ -104,7 +67,19 @@ function drawGraphs(rain)
         else return 0;
     });
     var feb = monthlyTotalDim.group().reduceSum(function(d) {
-        //if ("feb" === d.month) return d.value;
+        if ("feb" === d.month) return d.value;
+        return d.value;
+    });
+    var mar = monthlyTotalDim.group().reduceSum(function(d) {
+        if ("mar" === d.month) return d.value;
+        return d.value;
+    });
+    var apr = monthlyTotalDim.group().reduceSum(function(d) {
+        if ("apr" === d.month) return d.value;
+        return d.value;
+    });
+    var may = monthlyTotalDim.group().reduceSum(function(d) {
+        if ("may" === d.month) return d.value;
         return d.value;
     });
     /*
@@ -125,22 +100,50 @@ function drawGraphs(rain)
     var lYear = new Date(1901, 0, 1);
     var rYear = new Date(2001, 11, 1);
 
+    var stateTotalDim = cf.dimension(function(d) {
+        return d.statename;
+        //return monthNames[d.date.getMonth()];
+    });
+
+    var stateTotalValue = stateTotalDim.group().reduceSum(function(d) {
+        return d.value;
+    });
+    var jan1 = stateTotalDim.group().reduceSum(function(d) {
+        if ("jan" === d.month) return d.value;
+        else return 0;
+    });
+    var feb1 = stateTotalDim.group().reduceSum(function(d) {
+        if ("feb" === d.month) return d.value;
+        return d.value;
+    });
+    var mar1 = stateTotalDim.group().reduceSum(function(d) {
+        if ("mar" === d.month) return d.value;
+        return d.value;
+    });
+    var apr1 = stateTotalDim.group().reduceSum(function(d) {
+        if ("apr" === d.month) return d.value;
+        return d.value;
+    });
+    var may1 = stateTotalDim.group().reduceSum(function(d) {
+        if ("may" === d.month) return d.value;
+        return d.value;
+    });
+
     var monthlyRainLine = dc.lineChart("#rainfall-chart");
     monthlyRainLine
         .width(1000).height(300)
         .margins({top: 50, right: 10, bottom: 50, left: 120})
-        .dimension(monthlyTotalDim)
+        .dimension(stateTotalDim)
         .elasticX(true)
-        .x(d3.time.scale().domain([lYear, rYear]))
+        //.x(d3.time.scale().domain([lYear, rYear]))
         //.x(d3.time.scale().domain([new Date(2013, 6, 18), new Date(2013, 6, 24)]))
-        //.x(d3.scale.linear().domain([1, 12]))
-        //.ticks(d3.time.months)
-        .group(jan, "Jan")
-        .stack(feb, "Feb")
+        //.x(d3.scale.linear().domain(["Kar", "Him"]))
+        .group(jan1, "Jan")
+        .stack(feb1, "Feb")
+        .stack(mar1, "Mar")
+        .stack(apr1, "Apr")
+        .stack(may1, "May")
         /*
-        .stack(mar, "Mar")
-        .stack(apr, "Apr")
-        .stack(may, "May")
         .stack(jun, "Jun")
         .stack(jul, "Jul")
         .stack(aug, "Aug")
@@ -150,7 +153,6 @@ function drawGraphs(rain)
         .stack(dece, "Dec")
         */
         .elasticY(true)
-        //.xAxis().ticks(4)
         .renderArea(true)
         .renderHorizontalGridLines(true)
         .renderVerticalGridLines(true)
@@ -160,6 +162,9 @@ function drawGraphs(rain)
             return d.value;
         })
         .legend(dc.legend().x(20).y(20).itemHeight(10).gap(5));
+
+    dc.renderAll();
+
     /** Gives descending-sorted array of grouped items.  **/
     /*
     var top20 = monthlyValue.top(20);
@@ -169,12 +174,10 @@ function drawGraphs(rain)
     }
     */
 
-
     /** Gives descending-sorted array of grouped items. Our case - starts with "Sep".
     var top20 = monthlyTotalDim.top(20);
     */
 
-    //dc.renderAll();
 }
 
 function analyze(error, st_dist_map, rain)
@@ -212,11 +215,12 @@ function analyze(error, st_dist_map, rain)
         d.avg = d.total / 12;
     });
 
-
     updateProgressBar(60);
 
     rain.forEach(function(d) {
-        //console.log(d.year_val);
+        /**
+         * Update state and district names
+         */
         st_dist_map.forEach(function(map) {
             if ((d.stateid === map.statecode) && (d.districtid === map.districtcode))
             {
@@ -226,7 +230,69 @@ function analyze(error, st_dist_map, rain)
         });
     });
 
-    updateProgressBar(80);
     var moltenData = melt(rain,["stateid","districtid", "year_val", "avg", "total", "distname", "districid", "stateid", "statename" ], "month");
+
+    /**
+     * Add new element as a Date object which has Month and Year
+     */
+    moltenData.forEach(function(d) {
+        var month = getMonth(d.month);
+        var date = new Date();
+        date.setFullYear(d.year_val, month, 1);
+        d.date = date;
+        //console.log(d.date, d.month, d.year_val, month);
+    });
+
+    updateProgressBar(80);
     drawGraphs(moltenData);
+}
+
+function getMonthName(date)
+{
+}
+
+function getMonth(str)
+{
+    switch (str) {
+        case "jan":
+            return 0;
+            break
+        case "feb":
+            return 1;
+            break
+        case "mar":
+            return 2;
+            break
+        case "apr":
+            return 3;
+            break
+        case "may":
+            return 4;
+            break
+        case "jun":
+            return 5;
+            break
+        case "jul":
+            return 6;
+            break
+        case "aug":
+            return 7;
+            break
+        case "sep":
+            return 8;
+            break
+        case "oct":
+            return 9;
+            break
+        case "nov":
+            return 10;
+            break
+        case "dece":
+            return 11;
+            break
+        default:
+            window.alert("Bad apple: " + str);
+            return -1;
+            break;
+    }
 }
