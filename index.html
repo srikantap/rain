@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <title> Rainfall Dashboard</title>
+    <meta charset="UTF-8">
+    <link rel="stylesheet" type="text/css" href="css/dc.css"/>
+
+    <link rel="stylesheet" type="text/css" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap.min.css">
+    <link rel="stylesheet" type="text/css" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap-theme.min.css">
+
+  </head>
+  <body>
+
+    <div class='container' id='main-container'>
+    <div class='content'>
+    <div class='container' style='font: 12px sans-serif;'>
+
+      <center> <h3>Rainfall data discovery</h3> </center>
+
+      <div class="progress progress-striped active" id="progressbar-parent-id">
+          <div class="progress-bar progress-bar-success" role="progressbar" 
+              aria-valuenow="0" aria-valuemin="0" aria-valuemax="100" style="min-width: 2em;" id="bar"
+              style="width: 0%;">
+              Loading...
+          </div>
+      </div>
+
+      <div class='row'>
+        <h4>Avg Rainfall vs Years</h4>
+        <div class='span12' id='rainfall-chart'> 
+        <a href='javascript:dc.filterAll(); dc.redrawAll();'>Reset All</a>
+        </div>
+      </div>
+
+      <div class='row'>
+        <div class='span12' id='state-row-chart'>
+        <h4>State-wise rainfall</h4>
+        </div>
+      </div>
+
+      <div class='row'>
+        <div class='span12'>
+          <table class='table table-hover'id='data-table'>
+          <h4>Data table</h4>
+            <thead>
+              <tr class='header'>
+                    <th>State</th>
+                    <th>District</th>
+                    <th>Year</th>
+                    <th>Jan</th>
+                    <th>Feb</th>
+                    <th>Mar</th>
+                    <th>Apr</th>
+                    <th>May</th>
+                    <th>Jun</th>
+                    <th>Jul</th>
+                    <th>Aug</th>
+                    <th>Sep</th>
+                    <th>Oct</th>
+                    <th>Nov</th>
+                    <th>Dec</th>
+                    <th>Avg</th>
+                    <th>Total</th>
+              </tr>
+            </thead>
+          </table>
+        </div>
+      </div>
+
+    </div>
+    </div>
+    </div>
+
+    <script type="text/javascript" src="lib/jquery.min.js"></script> 
+    <script type="text/javascript" src="lib/crossfilter.min.js"></script> 
+    <script type="text/javascript" src="lib/d3.min.js" charset="utf-8"></script>
+    <script type="text/javascript" src="lib/dc.min.js"></script>
+    <script type="text/javascript" src="lib/queue.min.js"></script>
+    <script type="text/javascript" src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/js/bootstrap.min.js"></script>
+    <script type="text/javascript" src="https://raw.githubusercontent.com/jrideout/melt.js/master/melt.js"></script>
+    <script type="text/javascript" src="js/analyzeRainfall.js"></script>
+
+    <script type="text/javascript">
+        window.onload = startDoingThings;
+
+    //# sourceURL=index.html
+    </script>
+
+</body>
+</html>
