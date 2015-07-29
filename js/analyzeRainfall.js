@@ -48,105 +48,96 @@ function drawGraphs(rain)
 {
     updateProgressBar(100);
 
-    /**
+    /***************************************** DATA FORMAT ************************************************************************
+     * { month: , value: , _id: , stateid: , districtid: , year_val: , total: ,   avg: ,    statename: "" ,      distname: "" } 
+     * { month: , value: , _id: , stateid: , districtid: , year_val: , total: ,   avg: ,    statename: "" ,      distname: "" } 
+     * { month: , value: , _id: , stateid: , districtid: , year_val: , total: ,   avg: ,    statename: "" ,      distname: "" } 
+     * { month: , value: , _id: , stateid: , districtid: , year_val: , total: ,   avg: ,    statename: "" ,      distname: "" } 
+     ******************************************************************************************************************************
      *
-         { month: , value: , _id: , stateid: , districtid: , year_val: , total: , avg: , statename: "" , distname: "" } 
-         { month: , value: , _id: , stateid: , districtid: , year_val: , total: , avg: , statename: "" , distname: "" } 
-         { month: , value: , _id: , stateid: , districtid: , year_val: , total: , avg: , statename: "" , distname: "" } 
-         { month: , value: , _id: , stateid: , districtid: , year_val: , total: , avg: , statename: "" , distname: "" } 
-
-         { month: "jan", value: 144.13, _id: 0, stateid: 2, districtid: 3, year_val: 1965, 
-                total: 5813.299999999999, avg: 484.4416666666666, 
-                statename: "HIMACHAL PRADESH", distname: "LAHUL & SPITI" } 
-
-         { month: "feb", value: 536.77, _id: 0, stateid: 2, districtid: 3, year_val: 1965, 
-                total: 5813.299999999999, avg: 484.4416666666666, 
-                statename: "HIMACHAL PRADESH", distname: "LAHUL & SPITI" }
+     * { "jan",   144.13,  0,     2,         3,            1965,       5813.2999, 484.4416, "HIMACHAL PRADESH", "LAHUL & SPITI" } 
+     * { "feb",   536.77,  0,     2,         3,            1965,       5813.2999, 484.4416, "HIMACHAL PRADESH", "LAHUL & SPITI" }
      *
-     *
-     **/
-
-    var cf = crossfilter(rain);
-
-    var yearDim = cf.dimension(function(d) {
-        return (new Date(d.year_val, 1, 0));
-    });
-
-    var jan = yearDim.group().reduceSum(function(d) {
-        return d.jan / 100;
-    });
-
-    var feb = yearDim.group().reduceSum(function(d) {
-        return d.feb / 100;
-    });
-
-    var mar = yearDim.group().reduceSum(function(d) {
-        return d.mar / 100;
-    });
-
-    var apr = yearDim.group().reduceSum(function(d) {
-        return d.apr / 100;
-    });
-
-    var may = yearDim.group().reduceSum(function(d) {
-        return d.may / 100;
-    });
-    var jun = yearDim.group().reduceSum(function(d) {
-        return d.jun / 100;
-    });
-    var jul = yearDim.group().reduceSum(function(d) {
-        return d.jul / 100;
-    });
-    var aug = yearDim.group().reduceSum(function(d) {
-        return d.aug / 100;
-    });
-    var sep = yearDim.group().reduceSum(function(d) {
-        return d.sep / 100;
-    });
-    var oct = yearDim.group().reduceSum(function(d) {
-        return d.oct / 100;
-    });
-    var nov = yearDim.group().reduceSum(function(d) {
-        return d.nov / 100;
-    });
-    var dece = yearDim.group().reduceSum(function(d) {
-        return d.dece / 100;
-    });
+     ******************************************************************************************************************************/
 
     /*
-    var jan = yearDim.group().reduceSum(dc.pluck('jan'));
-    var feb = yearDim.group().reduceSum(dc.pluck('feb'));
-    var mar = yearDim.group().reduceSum(dc.pluck('mar'));
-    var apr = yearDim.group().reduceSum(dc.pluck('apr'));
-    var may = yearDim.group().reduceSum(dc.pluck('may'));
-    var jun = yearDim.group().reduceSum(dc.pluck('jun'));
-    var jul = yearDim.group().reduceSum(dc.pluck('jul'));
-    var aug = yearDim.group().reduceSum(dc.pluck('aug'));
-    var sep = yearDim.group().reduceSum(dc.pluck('sep'));
-    var oct = yearDim.group().reduceSum(dc.pluck('oct'));
-    var nov = yearDim.group().reduceSum(dc.pluck('nov'));
-    var dece = yearDim.group().reduceSum(dc.pluck('dece'));
+    for (i = 0; i < 10; i ++)
+    {
+        var str = d.year_val.toString().concat("/").concat(d.month);
+        var date = d3.time.format("%y/%b").parse(str);
+        rain[i].date = new Date(date);
 
-    /*
-    var avg = yearDim.group().reduceSum(dc.pluck('avg'));
-    var total = yearDim.group().reduceSum(dc.pluck('total'));
+        console.log(rain[i].date, " : ", date);
+    }
     */
 
-    var minYear = yearDim.bottom(1)[0].year_val;
-    var maxYear = yearDim.top(1)[0].year_val;
-    var lYear = new Date(minYear, 1, 0);
-    var rYear = new Date(maxYear, 1, 0);
+    var cf = crossfilter(rain);
+    var noOfRecords = cf.size();
+    //console.log("Size: ", noOfRecords);
 
-    var totalRainLine = dc.lineChart("#rainfall-chart");
-    totalRainLine
+    var monthlyTotalDim = cf.dimension(function(d) {
+        return d.month;
+        /*
+        switch (d.month)
+        {
+            case "jan":
+                return new Date(2015, 0, 1);
+            break;
+
+            case "feb":
+                return new Date(2015, 1, 1);
+            break;
+
+            default:
+                return new Date(2015, 4, 1);
+            break;
+        }
+        */
+    });
+
+    var monthlyValue = monthlyTotalDim.group().reduceSum(function(d) {
+        return d.value;
+    });
+
+    var jan = monthlyTotalDim.group().reduceSum(function(d) {
+        if ("jan" === d.month) return d.value;
+        else return 0;
+    });
+    var feb = monthlyTotalDim.group().reduceSum(function(d) {
+        //if ("feb" === d.month) return d.value;
+        return d.value;
+    });
+    /*
+    var mar = monthlyTotalDim.group().reduceSum(dc.pluck('mar'));
+    var apr = monthlyTotalDim.group().reduceSum(dc.pluck('apr'));
+    var may = monthlyTotalDim.group().reduceSum(dc.pluck('may'));
+    var jun = monthlyTotalDim.group().reduceSum(dc.pluck('jun'));
+    var jul = monthlyTotalDim.group().reduceSum(dc.pluck('jul'));
+    var aug = monthlyTotalDim.group().reduceSum(dc.pluck('aug'));
+    var sep = monthlyTotalDim.group().reduceSum(dc.pluck('sep'));
+    var oct = monthlyTotalDim.group().reduceSum(dc.pluck('oct'));
+    var nov = monthlyTotalDim.group().reduceSum(dc.pluck('nov'));
+    var dece = monthlyTotalDim.group().reduceSum(dc.pluck('dece'));
+    */
+
+    //var minYear = yearDim.bottom(1)[0].year_val;
+    //var maxYear = yearDim.top(1)[0].year_val;
+    var lYear = new Date(1901, 0, 1);
+    var rYear = new Date(2001, 11, 1);
+
+    var monthlyRainLine = dc.lineChart("#rainfall-chart");
+    monthlyRainLine
         .width(1000).height(300)
         .margins({top: 50, right: 10, bottom: 50, left: 120})
-        .dimension(yearDim)
+        .dimension(monthlyTotalDim)
         .elasticX(true)
-        //.x(d3.time.scale().domain([minYear, maxYear]))
         .x(d3.time.scale().domain([lYear, rYear]))
+        //.x(d3.time.scale().domain([new Date(2013, 6, 18), new Date(2013, 6, 24)]))
+        //.x(d3.scale.linear().domain([1, 12]))
+        //.ticks(d3.time.months)
         .group(jan, "Jan")
         .stack(feb, "Feb")
+        /*
         .stack(mar, "Mar")
         .stack(apr, "Apr")
         .stack(may, "May")
@@ -157,79 +148,33 @@ function drawGraphs(rain)
         .stack(oct, "Oct")
         .stack(nov, "Nov")
         .stack(dece, "Dec")
+        */
         .elasticY(true)
         //.xAxis().ticks(4)
         .renderArea(true)
         .renderHorizontalGridLines(true)
         .renderVerticalGridLines(true)
         //.yAxisLabel("Avg Rainfall (mm)")
-        .xAxisLabel("Year")
+        .xAxisLabel("Month")
         .valueAccessor(function (d) {
             return d.value;
         })
         .legend(dc.legend().x(20).y(20).itemHeight(10).gap(5));
-
-
-    var stateDim = cf.dimension(function(d) {
-        return (d.stateid.toString() + "." + d.statename).toString();
-    });
-    var avgRain = stateDim.group().reduceSum(function(d) {return d.avg;});
-
-    var stateRow = dc.rowChart("#state-row-chart");
-    stateRow
-        .width(1000).height(800)
-        .dimension(stateDim)
-        .label(function (d) {
-            return d.key.split(".")[1];
-        })
-        .group(avgRain)
-        .elasticX(true);
-
+    /** Gives descending-sorted array of grouped items.  **/
     /*
-    var distDim = cf.dimension(function(d) {
-        return d.distname;
-    });
-    var distRain = distDim.group().reduceSum(function(d) {return d.total;});
-    var distRainPie = dc.pieChart("#dist-pie-chart");
-    distRainPie
-        .width(300).height(300)
-        //.slicesCap(15)
-        .dimension(distDim)
-        .group(avgRain)
-        .innerRadius(15)
-        .legend(dc.legend());
-        */
+    var top20 = monthlyValue.top(20);
+    for (var i = 0; i < 13; i++)
+    {
+        console.log(top20[i]);
+    }
+    */
 
-    var dataTable = dc.dataTable("#data-table");
-    dataTable
-        .dimension(stateDim)
-        //.group(function(d) { return d.year_val; })
-        .group(function(d) { return "<center> Data Table </center> " })
-        //.group(function(d) { return "<center> Data Table </center> " })
-        .size(120)
-        .columns([
-            function(d) {return d.statename; },
-            function(d) {return d.distname; },
-            function(d) {return d.year_val; },
-            function(d) {return Math.round(d.jan); },
-            function(d) {return Math.round(d.feb); },
-            function(d) {return Math.round(d.mar); },
-            function(d) {return Math.round(d.apr); },
-            function(d) {return Math.round(d.may); },
-            function(d) {return Math.round(d.jun); },
-            function(d) {return Math.round(d.jul); },
-            function(d) {return Math.round(d.aug); },
-            function(d) {return Math.round(d.sep); },
-            function(d) {return Math.round(d.oct); },
-            function(d) {return Math.round(d.nov); },
-            function(d) {return Math.round(d.dece); },
-            function(d) {return Math.round(d.avg); },
-            function(d) {return Math.round(d.total); },
-        ])
-        .sortBy(function(d){ return d.avg; })
-        .order(d3.descending);
 
-    dc.renderAll();
+    /** Gives descending-sorted array of grouped items. Our case - starts with "Sep".
+    var top20 = monthlyTotalDim.top(20);
+    */
+
+    //dc.renderAll();
 }
 
 function analyze(error, st_dist_map, rain)
@@ -245,13 +190,12 @@ function analyze(error, st_dist_map, rain)
 
     updateProgressBar(50);
 
-    var format = d3.time.format("%Y");
     rain.forEach(function (d) {
         d.stateid = +d.stateid;
         d.districtid = +d.districtid;
-        //d.year_val = +d.year_val;
-        d.year_val = new Date(d.year_val, 1, 0);
-        d.year_val = d.year_val.getFullYear();
+        d.year_val = +d.year_val;
+        //d.year_val = new Date(d.year_val, 1, 0);
+        //d.year_val = d.year_val.getFullYear();
         d.jan = +d.jan;
         d.feb = +d.feb;
         d.mar = +d.mar;
@@ -284,6 +228,5 @@ function analyze(error, st_dist_map, rain)
 
     updateProgressBar(80);
     var moltenData = melt(rain,["stateid","districtid", "year_val", "avg", "total", "distname", "districid", "stateid", "statename" ], "month");
-    //console.log("After", moltenData[0], moltenData[1]);
-    //drawGraphs(rain);
+    drawGraphs(moltenData);
 }
