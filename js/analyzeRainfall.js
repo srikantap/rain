@@ -52,6 +52,7 @@ function drawGraphs(rain)
     var noOfRecords = cf.size();
     //console.log("Size: ", noOfRecords);
 
+    /*
     var monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
     var monthlyTotalDim = cf.dimension(function(d) {
         return d.date.getMonth();
@@ -82,6 +83,9 @@ function drawGraphs(rain)
         if ("may" === d.month) return d.value;
         return d.value;
     });
+
+    */
+
     /*
     var mar = monthlyTotalDim.group().reduceSum(dc.pluck('mar'));
     var apr = monthlyTotalDim.group().reduceSum(dc.pluck('apr'));
@@ -97,43 +101,94 @@ function drawGraphs(rain)
 
     //var minYear = yearDim.bottom(1)[0].year_val;
     //var maxYear = yearDim.top(1)[0].year_val;
-    var lYear = new Date(1901, 0, 1);
-    var rYear = new Date(2001, 11, 1);
+    //var lYear = new Date(1901, 0, 1);
+    //var rYear = new Date(2001, 11, 1);
 
-    var stateTotalDim = cf.dimension(function(d) {
+    var stateNameDim = cf.dimension(function(d) {
         return d.statename;
-        //return monthNames[d.date.getMonth()];
+    });
+    var stateNameGroup = stateNameDim.group();
+    var stateAvg = stateNameGroup.reduce(
+        //add
+        function(p,v) {
+            p.count++;
+            p.sum += v.value;
+            //p.avg = (p.count ? (p.sum / p.count) : 0);
+            p.avg = p.sum / p.count;
+            return p;
+        },
+        //remove
+        function(p,v) {
+            p.count--;
+            p.sum -= v.value;
+            p.avg = p.sum / p.count;
+            return p;
+        },
+        //init
+        function(p,v) {
+            return {count:0, avg:0, sum:0};
+        }
+    );
+
+    var monthDim = cf.dimension(function(d) {
+        return d.month;
+    });
+    var monthGroup = monthDim.group();
+    var avgGroup = monthGroup.reduce(
+        //add
+        function(p,v) {
+            p.count++;
+            p.sum += v.value;
+            //p.avg = (p.count ? (p.sum / p.count) : 0);
+            p.avg = p.sum / p.count;
+            return p;
+        },
+        //remove
+        function(p,v) {
+            p.count--;
+            p.sum -= v.value;
+            p.avg = p.sum / p.count;
+            return p;
+        },
+        //init
+        function(p,v) {
+            return {count:0, avg:0, sum:0};
+        }
+    );
+
+    /*
+    console.log("----------------- State Totals --------------------------");
+    stateAvg.top(50).forEach(function (d, i) {
+        console.log(d);
     });
 
-    var stateTotalValue = stateTotalDim.group().reduceSum(function(d) {
-        return d.value;
+    console.log("----------------- Month Totals --------------------------");
+    yearlyAvg.top(50).forEach(function (d, i) {
+        console.log(d);
     });
-    var jan1 = stateTotalDim.group().reduceSum(function(d) {
-        if ("jan" === d.month) return d.value;
-        else return 0;
-    });
-    var feb1 = stateTotalDim.group().reduceSum(function(d) {
-        if ("feb" === d.month) return d.value;
-        return d.value;
-    });
-    var mar1 = stateTotalDim.group().reduceSum(function(d) {
-        if ("mar" === d.month) return d.value;
-        return d.value;
-    });
-    var apr1 = stateTotalDim.group().reduceSum(function(d) {
-        if ("apr" === d.month) return d.value;
-        return d.value;
-    });
-    var may1 = stateTotalDim.group().reduceSum(function(d) {
-        if ("may" === d.month) return d.value;
-        return d.value;
-    });
+    */
 
+
+    var stateRow = dc.rowChart("#state-row-chart");
+    stateRow
+        .width(800).height(800)
+        .dimension(stateNameDim)
+        .group(stateAvg)
+        //.dimension(monthDim)
+        //.group(avgGroup)
+        .valueAccessor(function (d) {
+            return d.value.avg;
+        })
+        .elasticX(true);
+
+    dc.renderAll();
+
+    /*
     var monthlyRainLine = dc.lineChart("#rainfall-chart");
     monthlyRainLine
         .width(1000).height(300)
         .margins({top: 50, right: 10, bottom: 50, left: 120})
-        .dimension(stateTotalDim)
+        .dimension(stateNameDim)
         .elasticX(true)
         //.x(d3.time.scale().domain([lYear, rYear]))
         //.x(d3.time.scale().domain([new Date(2013, 6, 18), new Date(2013, 6, 24)]))
@@ -143,7 +198,6 @@ function drawGraphs(rain)
         .stack(mar1, "Mar")
         .stack(apr1, "Apr")
         .stack(may1, "May")
-        /*
         .stack(jun, "Jun")
         .stack(jul, "Jul")
         .stack(aug, "Aug")
@@ -151,7 +205,6 @@ function drawGraphs(rain)
         .stack(oct, "Oct")
         .stack(nov, "Nov")
         .stack(dece, "Dec")
-        */
         .elasticY(true)
         .renderArea(true)
         .renderHorizontalGridLines(true)
@@ -163,7 +216,7 @@ function drawGraphs(rain)
         })
         .legend(dc.legend().x(20).y(20).itemHeight(10).gap(5));
 
-    dc.renderAll();
+    */
 
     /** Gives descending-sorted array of grouped items.  **/
     /*
@@ -212,7 +265,7 @@ function analyze(error, st_dist_map, rain)
         d.nov = +d.nov;
         d.dece = +d.dece;
         d.total = d.jan + d.feb + d.mar + d.apr + d.may + d.jun + d.jul + d.aug + d.sep + d.oct + d.nov + d.dece;
-        d.avg = d.total / 12;
+        d.yearly_avg = d.total / 12;
     });
 
     updateProgressBar(60);
@@ -230,7 +283,7 @@ function analyze(error, st_dist_map, rain)
         });
     });
 
-    var moltenData = melt(rain,["stateid","districtid", "year_val", "avg", "total", "distname", "districid", "stateid", "statename" ], "month");
+    var moltenData = melt(rain,["stateid","districtid", "year_val", "yearly_avg", "total", "distname", "districid", "stateid", "statename" ], "month");
 
     /**
      * Add new element as a Date object which has Month and Year
