@@ -84,7 +84,35 @@ function drawGraphs(rain)
     var febAvg = yearDim.group().reduce(
         //add
         function(p,v) {
-            return (v.month === "feb" ?  (p.value / 100) : 0);
+            if (v.month === "feb")
+            {
+                var avg = (v.value / 100);
+                return avg;
+            }
+            else return 0;
+        },
+        //remove
+        function(p,v) {
+            p.count--;
+            p.sum -= v.value;
+            p.avg = p.sum / 100;
+            return p;
+        },
+        //init
+        function(p,v) {
+            return {count:0, avg:0, sum:0};
+        }
+    );
+
+    var mayAvg = yearDim.group().reduce(
+        //add
+        function(p,v) {
+            if (v.month === "feb")
+            {
+                p.avg = (v.value / 100);
+                return p;
+            }
+            else return 0;
         },
         //remove
         function(p,v) {
@@ -117,10 +145,10 @@ function drawGraphs(rain)
         //.x(d3.time.scale().domain([new Date(2013, 6, 18), new Date(2013, 6, 24)]))
         .group(yearlyAvg, "Year Avg")
         .stack(febAvg, "Feb")
+        .stack(mayAvg, "May")
         /*
         .stack(mar1, "Mar")
         .stack(apr1, "Apr")
-        .stack(may1, "May")
         .stack(jun, "Jun")
         .stack(jul, "Jul")
         .stack(aug, "Aug")
