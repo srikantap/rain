@@ -54,56 +54,94 @@ function drawGraphs(rain)
 
     /*
     var monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
-    var monthlyTotalDim = cf.dimension(function(d) {
-        return d.date.getMonth();
-        //return monthNames[d.date.getMonth()];
-    });
-
-    var monthlyValue = monthlyTotalDim.group().reduceSum(function(d) {
-        return d.value;
-    });
-
-    var jan = monthlyTotalDim.group().reduceSum(function(d) {
-        if ("jan" === d.month) return d.value;
-        else return 0;
-    });
-    var feb = monthlyTotalDim.group().reduceSum(function(d) {
-        if ("feb" === d.month) return d.value;
-        return d.value;
-    });
-    var mar = monthlyTotalDim.group().reduceSum(function(d) {
-        if ("mar" === d.month) return d.value;
-        return d.value;
-    });
-    var apr = monthlyTotalDim.group().reduceSum(function(d) {
-        if ("apr" === d.month) return d.value;
-        return d.value;
-    });
-    var may = monthlyTotalDim.group().reduceSum(function(d) {
-        if ("may" === d.month) return d.value;
-        return d.value;
-    });
-
     */
 
+    var yearDim = cf.dimension(function(d) {
+        return d.date.getFullYear();
+    });
+
+    var yearlyAvg = yearDim.group().reduce(
+        //add
+        function(p,v) {
+            p.count++;
+            p.sum += v.value;
+            p.avg = p.sum / 100;
+            return p;
+        },
+        //remove
+        function(p,v) {
+            p.count--;
+            p.sum -= v.value;
+            p.avg = p.sum / 100;
+            return p;
+        },
+        //init
+        function(p,v) {
+            return {count:0, avg:0, sum:0};
+        }
+    );
+
+    var febAvg = yearDim.group().reduce(
+        //add
+        function(p,v) {
+            return (v.month === "feb" ?  (p.value / 100) : 0);
+        },
+        //remove
+        function(p,v) {
+            p.count--;
+            p.sum -= v.value;
+            p.avg = p.sum / 100;
+            return p;
+        },
+        //init
+        function(p,v) {
+            return {count:0, avg:0, sum:0};
+        }
+    );
     /*
-    var mar = monthlyTotalDim.group().reduceSum(dc.pluck('mar'));
-    var apr = monthlyTotalDim.group().reduceSum(dc.pluck('apr'));
-    var may = monthlyTotalDim.group().reduceSum(dc.pluck('may'));
-    var jun = monthlyTotalDim.group().reduceSum(dc.pluck('jun'));
-    var jul = monthlyTotalDim.group().reduceSum(dc.pluck('jul'));
-    var aug = monthlyTotalDim.group().reduceSum(dc.pluck('aug'));
-    var sep = monthlyTotalDim.group().reduceSum(dc.pluck('sep'));
-    var oct = monthlyTotalDim.group().reduceSum(dc.pluck('oct'));
-    var nov = monthlyTotalDim.group().reduceSum(dc.pluck('nov'));
-    var dece = monthlyTotalDim.group().reduceSum(dc.pluck('dece'));
+    console.log("----------------- Yearly Avgs --------------------------");
+    yearlyAvg.top(150).forEach(function (d, i) {
+        console.log(d);
+    });
     */
 
-    //var minYear = yearDim.bottom(1)[0].year_val;
-    //var maxYear = yearDim.top(1)[0].year_val;
-    //var lYear = new Date(1901, 0, 1);
-    //var rYear = new Date(2001, 11, 1);
+    var minYear = yearDim.bottom(1)[0].date.getFullYear();
+    var maxYear = yearDim.top(1)[0].date.getFullYear();
+    var monthlyRainLine = dc.lineChart("#rainfall-chart");
+    monthlyRainLine
+        .width(1000).height(300)
+        .margins({top: 50, right: 10, bottom: 50, left: 120})
+        .dimension(yearDim)
+        .elasticX(true)
+        .x(d3.time.scale().domain([minYear, maxYear]))
+        //.x(d3.time.scale().domain([new Date(2013, 6, 18), new Date(2013, 6, 24)]))
+        .group(yearlyAvg, "Year Avg")
+        .stack(febAvg, "Feb")
+        /*
+        .stack(mar1, "Mar")
+        .stack(apr1, "Apr")
+        .stack(may1, "May")
+        .stack(jun, "Jun")
+        .stack(jul, "Jul")
+        .stack(aug, "Aug")
+        .stack(sep, "Sep")
+        .stack(oct, "Oct")
+        .stack(nov, "Nov")
+        .stack(dece, "Dec")
+        */
+        .elasticY(true)
+        .renderArea(true)
+        .renderHorizontalGridLines(true)
+        .renderVerticalGridLines(true)
+        //.yAxisLabel("Avg Rainfall (mm)")
+        .xAxisLabel("Years")
+        .valueAccessor(function (d) {
+            return d.value.avg;
+        })
+        .legend(dc.legend().x(20).y(20).itemHeight(10).gap(5));
 
+
+    /****************************ROW CHART*************************************/
     var stateNameDim = cf.dimension(function(d) {
         return d.statename;
     });
@@ -161,11 +199,6 @@ function drawGraphs(rain)
     stateAvg.top(50).forEach(function (d, i) {
         console.log(d);
     });
-
-    console.log("----------------- Month Totals --------------------------");
-    yearlyAvg.top(50).forEach(function (d, i) {
-        console.log(d);
-    });
     */
 
 
@@ -183,40 +216,6 @@ function drawGraphs(rain)
 
     dc.renderAll();
 
-    /*
-    var monthlyRainLine = dc.lineChart("#rainfall-chart");
-    monthlyRainLine
-        .width(1000).height(300)
-        .margins({top: 50, right: 10, bottom: 50, left: 120})
-        .dimension(stateNameDim)
-        .elasticX(true)
-        //.x(d3.time.scale().domain([lYear, rYear]))
-        //.x(d3.time.scale().domain([new Date(2013, 6, 18), new Date(2013, 6, 24)]))
-        //.x(d3.scale.linear().domain(["Kar", "Him"]))
-        .group(jan1, "Jan")
-        .stack(feb1, "Feb")
-        .stack(mar1, "Mar")
-        .stack(apr1, "Apr")
-        .stack(may1, "May")
-        .stack(jun, "Jun")
-        .stack(jul, "Jul")
-        .stack(aug, "Aug")
-        .stack(sep, "Sep")
-        .stack(oct, "Oct")
-        .stack(nov, "Nov")
-        .stack(dece, "Dec")
-        .elasticY(true)
-        .renderArea(true)
-        .renderHorizontalGridLines(true)
-        .renderVerticalGridLines(true)
-        //.yAxisLabel("Avg Rainfall (mm)")
-        .xAxisLabel("Month")
-        .valueAccessor(function (d) {
-            return d.value;
-        })
-        .legend(dc.legend().x(20).y(20).itemHeight(10).gap(5));
-
-    */
 
     /** Gives descending-sorted array of grouped items.  **/
     /*
