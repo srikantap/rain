@@ -1,8 +1,12 @@
+/**
+ * Get bar element and increment it by 'percent'
+ **/
 function updateProgressBar(percent)
 {
     var bars = document.getElementById("bar");
     bars.style.width = percent+"%";
 
+    /* Hide bar when fully loaded (i.e, 100%) */
     if (100 === percent)
     {
         bars.parentNode.removeChild(bars);
@@ -12,6 +16,10 @@ function updateProgressBar(percent)
     }
 }
 
+/**
+ * Invoked when document is loaded.
+ * Read csv files, and invoke analyze
+ **/
 function startDoingThings()
 {
     updateProgressBar(30);
@@ -25,12 +33,14 @@ function drawGraphs(rain)
 {
     updateProgressBar(100);
 
-    /***************************************** DATA FORMAT ************************************************************************
-     * { month: , value: , _id: , stateid: , districtid: , year_val: , total: ,   avg: ,    statename: "" ,      distname: "" } 
+    /**
+     * Data will be available in this format:
+     * **************************************** DATA FORMAT ************************************************************************
      * { month: , value: , _id: , stateid: , districtid: , year_val: , total: ,   avg: ,    statename: "" ,      distname: "" } 
      * { month: , value: , _id: , stateid: , districtid: , year_val: , total: ,   avg: ,    statename: "" ,      distname: "" } 
      * { month: , value: , _id: , stateid: , districtid: , year_val: , total: ,   avg: ,    statename: "" ,      distname: "" } 
      ******************************************************************************************************************************
+     * Sample data:
      *
      * { "jan",   144.13,  0,     2,         3,            1965,       5813.2999, 484.4416, "HIMACHAL PRADESH", "LAHUL & SPITI" } 
      * { "feb",   536.77,  0,     2,         3,            1965,       5813.2999, 484.4416, "HIMACHAL PRADESH", "LAHUL & SPITI" }
@@ -60,6 +70,7 @@ function drawGraphs(rain)
         return d.date.getFullYear();
     });
 
+    /* Calculate yearly average; store in p.avg */
     var yearlyAvg = yearDim.group().reduce(
         //add
         function(p,v) {
@@ -81,6 +92,7 @@ function drawGraphs(rain)
         }
     );
 
+    /* Calculate feb average; store in p.avg */
     var febAvg = yearDim.group().reduce(
         //add
         function(p,v) {
@@ -104,6 +116,7 @@ function drawGraphs(rain)
         }
     );
 
+    /* Calculate May average; store in p.avg */
     var mayAvg = yearDim.group().reduce(
         //add
         function(p,v) {
@@ -126,6 +139,7 @@ function drawGraphs(rain)
             return {count:0, avg:0, sum:0};
         }
     );
+
     /*
     console.log("----------------- Yearly Avgs --------------------------");
     yearlyAvg.top(150).forEach(function (d, i) {
@@ -260,6 +274,9 @@ function drawGraphs(rain)
 
 }
 
+/**
+ * Invoked by D3 when csvs are fully read
+ **/
 function analyze(error, st_dist_map, rain)
 {
     updateProgressBar(40);
@@ -310,6 +327,7 @@ function analyze(error, st_dist_map, rain)
         });
     });
 
+    /* Melt month columns */
     var moltenData = melt(rain,["stateid","districtid", "year_val", "yearly_avg", "total", "distname", "districid", "stateid", "statename" ], "month");
 
     /**
@@ -325,10 +343,6 @@ function analyze(error, st_dist_map, rain)
 
     updateProgressBar(80);
     drawGraphs(moltenData);
-}
-
-function getMonthName(date)
-{
 }
 
 function getMonth(str)
@@ -376,3 +390,8 @@ function getMonth(str)
             break;
     }
 }
+
+function getMonthName(date)
+{
+}
+
